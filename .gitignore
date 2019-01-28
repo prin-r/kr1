@@ -1,4 +1,5 @@
 node_modules/
 .vscode/
+badgerdb/
 dist/
 .DS_Store

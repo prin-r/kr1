@@ -4,20 +4,10 @@ import { post } from 'axios'
 const Page = () => {
 
     const register = async () => {
-        const config = {
-            headers:{
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": '*'
-            }
-        };
 
-        const data = {
-            "id": "ssssss"
-        };
-        
-        const res = await post('http://localhost:9091/register/', data, config);
+        const { data } = await post('http://localhost:9091/register', {"id": "ssssss"});
 
-        console.log(res);
+        console.log(data);
     };
 
     return (

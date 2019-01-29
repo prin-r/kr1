@@ -9,6 +9,7 @@ import (
 
 	"github.com/dgraph-io/badger"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 var urlMapping = make(map[string]string)
@@ -28,9 +29,6 @@ func getDir() string {
 
 func GetLink(w http.ResponseWriter, r *http.Request) {
 
-	header := w.Header()
-	header.Add("Access-Control-Allow-Origin", "*")
-
 	params := mux.Vars(r)
 
 	json.NewEncoder(w).Encode(params["id"])
@@ -38,15 +36,8 @@ func GetLink(w http.ResponseWriter, r *http.Request) {
 
 func Register(w http.ResponseWriter, r *http.Request) {
 
-	// header := w.Header()
-	// header.Add("Access-Control-Allow-Origin", "*")
-	// header.Add("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS")
-	// header.Add("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With")
-
 	domain := DomainName{}
 	_ = json.NewDecoder(r.Body).Decode(&domain)
-
-	log.Println(domain.ID)
 
 	json.NewEncoder(w).Encode("zxzxkzlkxlzkx : " + domain.ID)
 }
@@ -70,5 +61,6 @@ func main() {
 	router.HandleFunc("/register", Register).Methods("POST")
 	router.HandleFunc("/{id}", GetLink).Methods("GET")
 
-	log.Fatal(http.ListenAndServe(":9091", router))
+	handler := cors.Default().Handler(router)
+	log.Fatal(http.ListenAndServe(":9091", handler))
 }

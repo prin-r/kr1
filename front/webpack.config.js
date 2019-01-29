@@ -6,7 +6,12 @@ module.exports = (env) => {
     console.log('isProduction : ',isProduction);
     return {
         mode: env,
-        entry: ['@babel/polyfill','./src/App.js'],
+        entry: [
+            '@babel/polyfill',
+            "core-js/modules/es6.promise",
+            "core-js/modules/es6.array.iterator",
+            './src/App.js'
+        ],
         output: {
             path: path.join(__dirname, 'public'),
             filename: 'dist/bundle.js',

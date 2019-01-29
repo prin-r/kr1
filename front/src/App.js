@@ -8,6 +8,4 @@ const app = (
     </div>
 );
 
-console.log("jaljslaskalkslakslaks");
-
 ReactDOM.render(app, document.getElementById('app'));

@@ -1,8 +1,9 @@
-import React from 'react';
+import React , { useEffect } from 'react';
+import { get } from 'axios';
 
 const NotFound = () => (
     <div>
-        <p>Not Found 90909090909</p>
+        <p>404 - Not Found</p>
     </div>
 );
 

@@ -4,8 +4,13 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 const loading = (<div>...loading</div>);
 
-const Page = Loadable({
-    loader: () => import('../components/Page'),
+const Register = Loadable({
+    loader: () => import('../components/Register'),
+    loading: () => loading
+});
+
+const GetLink = Loadable({
+    loader: () => import('../components/GetLink'),
     loading: () => loading
 });
 
@@ -18,8 +23,9 @@ const AppRouter = () => (
     <BrowserRouter>
         <div>
             <Switch>
-                <Route path="/page" component={Page} />
-                <Route component={NotFound} />
+                <Route exact={true} path="/register" component={Register} />
+                <Route path="/:id" component={GetLink} />
+                <Route component={NotFound}/>
             </Switch>
         </div>
     </BrowserRouter>

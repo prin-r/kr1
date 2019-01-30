@@ -1,16 +1,16 @@
 import React , { useState , useEffect } from 'react';
-import { get } from 'axios';
+import { tryToAccess } from '../utils/services';
 
 const GetLink = ({ match }) => {
 
     const [content, setContent] = useState("loading ...");
 
     useEffect(async () => {
-        if (match && match.params) {
-            const { data } = await get('http://localhost:9091/' + match.params.id);
-            setContent(data);
-        }
-    });
+        match && 
+        match.params && 
+        match.params.id &&
+        setContent(await tryToAccess(match.params.id));
+    }, []);
 
     return (
         <div>

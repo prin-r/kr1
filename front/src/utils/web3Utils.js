@@ -26,8 +26,10 @@ export const sign = async (msg, address) => {
         console.log(e);
         return null;
     }
-    const r = signature.slice(0, 66);
-    const s = '0x' + signature.slice(66, 130);
-    const v = web3.utils.toDecimal('0x' + signature.slice(130, 132));
-    return {r: r, s: s, v: v};
+    if (!signature || signature.length !== 132) {
+        return null;
+    }
+    // const tmp = '0xx'+signature.substr(3)
+    // console.log(tmp);
+    return {sig: signature};
 };

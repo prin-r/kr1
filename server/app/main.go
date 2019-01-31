@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -10,6 +12,9 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )
@@ -22,9 +27,7 @@ var address2Message = make(map[string]string)
 type Registration struct {
 	URL     string `json:"url"`
 	Address string `json:"address"`
-	R       string `json:"r"`
-	S       string `json:"S"`
-	V       uint8  `json:"v"`
+	Sig     string `json:"sig"`
 }
 
 func getRandString(n uint8) string {
@@ -45,6 +48,27 @@ func getDir() string {
 	return dir
 }
 
+func signHash(data []byte) []byte {
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	return crypto.Keccak256([]byte(msg))
+}
+
+func getRecover(addr, sigHex string, msg []byte) bool {
+	addrRef := common.HexToAddress(addr)
+	sig := hexutil.MustDecode(sigHex)
+	if sig[64] != 27 && sig[64] != 28 {
+		return false
+	}
+	sig[64] -= 27
+	pubKey, err := crypto.SigToPub(signHash(msg), sig)
+	if err != nil {
+		return false
+	}
+	recoveredAddr := crypto.PubkeyToAddress(*pubKey)
+
+	return addrRef == recoveredAddr
+}
+
 func GetLink(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	shorten, ok := params["id"]
@@ -52,9 +76,6 @@ func GetLink(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("wrong input format")
 		return
 	}
-
-	log.Println(shorten)
-
 	url, ok := url2urlMapping[shorten]
 	if !ok {
 		json.NewEncoder(w).Encode("unknown url")
@@ -83,15 +104,32 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("wrong input format")
 		return
 	}
+	if len(registration.Sig) != 132 || registration.Sig[0:2] != "0x" {
+		json.NewEncoder(w).Encode("wrong input format")
+		return
+	}
+	_, err = hex.DecodeString(registration.Sig[2:132])
+	if err != nil {
+		json.NewEncoder(w).Encode("wrong input format")
+		return
+	}
+
 	message, ok := address2Message[registration.Address]
 	if !ok {
 		json.NewEncoder(w).Encode("address not found")
 		return
 	}
 
-	shortenUrl := getRandString(8)
-	url2urlMapping[shortenUrl] = registration.URL
-	json.NewEncoder(w).Encode(registration.Address + " | " + message + " | " + shortenUrl)
+	isValid := getRecover(registration.Address, registration.Sig, []byte(message))
+	if !isValid {
+		json.NewEncoder(w).Encode("invalid signature")
+		return
+	}
+
+	shorten := getRandString(7)
+	url2urlMapping[shorten] = registration.URL
+
+	json.NewEncoder(w).Encode(shorten)
 }
 
 func main() {

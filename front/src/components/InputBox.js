@@ -1,5 +1,4 @@
 import React , { useState } from 'react';
-import { handleHex } from '../utils/services';
 
 const InputBox = ({ val, click, change, type, buttonText }) => {
 
